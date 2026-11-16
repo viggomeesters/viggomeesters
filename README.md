@@ -26,6 +26,6 @@ Browse local SQLite tables, schemas and capped query results in Obsidian. Read-o
 
 ## GitHub activity
 
-![Public GitHub metrics for viggomeesters](assets/metrics.svg)
+![Public GitHub metrics for viggomeesters](assets/metrics-2026-11-16.svg)
 
 Public activity snapshot · 16 November 2026 · [Source and refresh](docs/maintenance.md)
