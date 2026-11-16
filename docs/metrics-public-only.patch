@@ -1,0 +1,159 @@
+diff --git a/source/plugins/base/index.mjs b/source/plugins/base/index.mjs
+index fcd6c6a..99ae232 100644
+--- a/source/plugins/base/index.mjs
++++ b/source/plugins/base/index.mjs
+@@ -37,6 +37,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+         console.debug(`metrics/compute/${login}/base > successfully loaded bulk query`)
+       }
+       catch {
++        throw new Error("Public snapshot query failed; broad fallback queries disabled")
+         console.debug(`metrics/compute/${login}/base > failed to load bulk query, falling back to unit queries`)
+         //Query basic fields
+         const fields = {
+@@ -88,7 +89,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+         }
+       }
+       //Query contributions collection over account lifetime instead of last year
+-      if (account === "user") {
++      if (false) { // Local public-repository snapshot: contribution history excluded.
+         if ((indepth) && (imports.metadata.plugins.base.extras("indepth", {...conf.settings, error: false}))) {
+           const fields = ["totalRepositoriesWithContributedCommits", "totalCommitContributions", "restrictedContributionsCount", "totalIssueContributions", "totalPullRequestContributions", "totalPullRequestReviewContributions"]
+           const start = new Date(data.user.createdAt)
+@@ -142,7 +143,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+         }
+       }
+       //Query repositories from GitHub API
+-      for (const type of ({user: ["repositories", "repositoriesContributedTo"], organization: ["repositories"]}[account] ?? [])) {
++      for (const type of ["repositories"]) {
+         //Iterate through repositories
+         let cursor = null
+         let pushed = 0
+@@ -182,6 +183,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+       }
+       //Fetch missing packages count from ghcr.io using REST API (as GraphQL API does not support it yet)
+       try {
++        throw new Error("Public-repository snapshot: package queries disabled")
+         console.debug(`metrics/compute/${login}/base > patching packages count if possible`)
+         const {data: packages} = await rest.packages[{user: "listPackagesForUser", organization: "listPackagesForOrganization"}[account]]({package_type: "container", org: login, username: login})
+         data.user.packages.totalCount += packages.length
+@@ -225,6 +227,7 @@ const postprocess = {
+       isHireable: false,
+       isVerified: false,
+       repositories: {},
++      repositoriesContributedTo: {nodes: []}, // Excluded from this owned-public-repository snapshot.
+       contributionsCollection: {},
+     })
+   },
+diff --git a/source/plugins/base/queries/repositories.graphql b/source/plugins/base/queries/repositories.graphql
+index d0af25a..80a963d 100644
+--- a/source/plugins/base/queries/repositories.graphql
++++ b/source/plugins/base/queries/repositories.graphql
+@@ -1,6 +1,6 @@
+ query BaseRepositories {
+   $account(login: "$login") {
+-    $type($after first: $repositories $forks $affiliations $constraints, orderBy: {field: UPDATED_AT, direction: DESC}) {
++    $type($after first: $repositories $forks $affiliations $constraints, privacy: PUBLIC, orderBy: {field: UPDATED_AT, direction: DESC}) {
+       edges {
+         cursor
+       }
+@@ -58,4 +58,4 @@ query BaseRepositories {
+       }
+     }
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/source/plugins/base/queries/user.x.graphql b/source/plugins/base/queries/user.x.graphql
+index c4aa8a7..3cd1fe8 100644
+--- a/source/plugins/base/queries/user.x.graphql
++++ b/source/plugins/base/queries/user.x.graphql
+@@ -1,55 +1,13 @@
+ query BaseUserX {
+   user(login: "$login") {
+-    packages {
+-      totalCount
+-    }
+-    starredRepositories {
+-      totalCount
+-    }
+-    watching {
+-      totalCount
+-    }
+-    sponsorshipsAsSponsor {
+-      totalCount
+-    }
+-    sponsorshipsAsMaintainer {
+-      totalCount
+-    }
+-    followers {
+-      totalCount
+-    }
+-    following {
+-      totalCount
+-    }
+-    issueComments {
+-      totalCount
+-    }
+-    organizations {
+-      totalCount
+-    }
+-    repositoriesContributedTo(includeUserRepositories: true) {
+-      totalCount
+-    }
+-    repositories(last: 0 $affiliations) {
+-      totalCount
+-      totalDiskUsage
+-    }
+-    contributionsCollection {
+-      totalRepositoriesWithContributedCommits
+-      totalCommitContributions
+-      restrictedContributionsCount
+-      totalIssueContributions
+-      totalPullRequestContributions
+-      totalPullRequestReviewContributions
+-    }
+     calendar:contributionsCollection(from: "$calendar.from", to: "$calendar.to") {
+       contributionCalendar {
+-        weeks {
+-          contributionDays {
+-            color
+-          }
+-        }
++        weeks { contributionDays { color } }
+       }
+     }
++    repositories(last: 0 $affiliations, privacy: PUBLIC) {
++      totalCount
++      totalDiskUsage
++    }
+   }
+ }
+diff --git a/source/templates/classic/partials/isocalendar.ejs b/source/templates/classic/partials/isocalendar.ejs
+index e765bf5..7c5ff09 100644
+--- a/source/templates/classic/partials/isocalendar.ejs
++++ b/source/templates/classic/partials/isocalendar.ejs
+@@ -17,7 +17,7 @@
+         <section>
+           <h3 class="field">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" d="M7.75 14A1.75 1.75 0 016 12.25v-8.5C6 2.784 6.784 2 7.75 2h6.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0114.25 14h-6.5zm-.25-1.75c0 .138.112.25.25.25h6.5a.25.25 0 00.25-.25v-8.5a.25.25 0 00-.25-.25h-6.5a.25.25 0 00-.25.25v8.5zM4.9 3.508a.75.75 0 01-.274 1.025.25.25 0 00-.126.217v6.5a.25.25 0 00.126.217.75.75 0 01-.752 1.298A1.75 1.75 0 013 11.25v-6.5c0-.649.353-1.214.874-1.516a.75.75 0 011.025.274zM1.625 5.533a.75.75 0 10-.752-1.299A1.75 1.75 0 000 5.75v4.5c0 .649.353 1.214.874 1.515a.75.75 0 10.752-1.298.25.25 0 01-.126-.217v-4.5a.25.25 0 01.126-.217z"></path></svg>
+-            Commits streaks
++            Contribution streaks
+           </h3>
+           <% if (plugins.isocalendar.streak.current) { %>
+             <div class="field">
+@@ -31,7 +31,7 @@
+           </div>
+           <h3 class="field">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" d="M10.5 7.75a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zm1.43.75a4.002 4.002 0 01-7.86 0H.75a.75.75 0 110-1.5h3.32a4.001 4.001 0 017.86 0h3.32a.75.75 0 110 1.5h-3.32z"></path></svg>
+-            Commits per day
++            Contributions per day
+           </h3>
+           <div class="field">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M7.823 1.677L4.927 4.573A.25.25 0 005.104 5H7.25v3.236a.75.75 0 101.5 0V5h2.146a.25.25 0 00.177-.427L8.177 1.677a.25.25 0 00-.354 0zM13.75 11a.75.75 0 000 1.5h.5a.75.75 0 000-1.5h-.5zm-3.75.75a.75.75 0 01.75-.75h.5a.75.75 0 010 1.5h-.5a.75.75 0 01-.75-.75zM7.75 11a.75.75 0 000 1.5h.5a.75.75 0 000-1.5h-.5zM4 11.75a.75.75 0 01.75-.75h.5a.75.75 0 010 1.5h-.5a.75.75 0 01-.75-.75zM1.75 11a.75.75 0 000 1.5h.5a.75.75 0 000-1.5h-.5z"></path></svg>
+@@ -48,4 +48,4 @@
+       <%- plugins.isocalendar.svg %>
+     <% } %>
+   </section>
+-<% } %>
+\ No newline at end of file
++<% } %>
