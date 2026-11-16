@@ -1,5 +1,5 @@
 diff --git a/source/plugins/base/index.mjs b/source/plugins/base/index.mjs
-index fcd6c6a..c5d7086 100644
+index fcd6c6a..99ae232 100644
 --- a/source/plugins/base/index.mjs
 +++ b/source/plugins/base/index.mjs
 @@ -37,6 +37,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
@@ -36,6 +36,14 @@ index fcd6c6a..c5d7086 100644
          console.debug(`metrics/compute/${login}/base > patching packages count if possible`)
          const {data: packages} = await rest.packages[{user: "listPackagesForUser", organization: "listPackagesForOrganization"}[account]]({package_type: "container", org: login, username: login})
          data.user.packages.totalCount += packages.length
+@@ -225,6 +227,7 @@ const postprocess = {
+       isHireable: false,
+       isVerified: false,
+       repositories: {},
++      repositoriesContributedTo: {nodes: []}, // Excluded from this owned-public-repository snapshot.
+       contributionsCollection: {},
+     })
+   },
 diff --git a/source/plugins/base/queries/repositories.graphql b/source/plugins/base/queries/repositories.graphql
 index d0af25a..80a963d 100644
 --- a/source/plugins/base/queries/repositories.graphql
