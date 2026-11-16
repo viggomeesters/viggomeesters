@@ -1,17 +1,5 @@
 # Profile maintenance
 
-## Sources
-
-Only existing public project material is used. The interface previews are copied unchanged; the Alteryx and SQL previews are illustrations from their repositories, not new screenshots of a running installation.
-
-| File | Public source revision |
-| --- | --- |
-| `assets/ruycast.png` | [Ruycast `assets/hero.png`](https://github.com/viggomeesters/ruycast/blob/ceb43e7d578c66689d52c75a6dde523995e1f512/assets/hero.png) |
-| `assets/alteryx-viewer.svg` | [Alteryx Viewer `assets/screenshot.svg`](https://github.com/viggomeesters/obsidian-alteryx-viewer/blob/19d4050ca2392bc8f8a5609df8545e40737c1d85/assets/screenshot.svg) |
-| `assets/sql-viewer.svg` | [SQL Viewer `assets/screenshot.svg`](https://github.com/viggomeesters/obsidian-sql-viewer/blob/cac87886da897e17d765f035acd6ba0384e5269c/assets/screenshot.svg) |
-
-Descriptions follow the public project READMEs. Ruycast is a native beta, not a notarized app release. Project links remain the source for installation and current status.
-
 ## Metrics snapshot
 
 Generated on **16 November 2026** by [lowlighter/Metrics v3.34](https://github.com/lowlighter/metrics/tree/65836723097537a54cd8eb90f61839426b4266b6), commit `65836723097537a54cd8eb90f61839426b4266b6`. This is a committed snapshot, not a live service. It uses the classic template, public owned repositories (including forks), their reported language bytes, and the full-year isometric contribution calendar.
