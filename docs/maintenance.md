@@ -2,15 +2,13 @@
 
 ## Sources
 
-Only existing public project material is used. The interface previews are copied unchanged; the Alteryx and SQL previews are illustrations from their repositories, not new screenshots of a running installation.
+The Ruycast preview is copied unchanged from the existing public project material.
 
 | File | Public source revision |
 | --- | --- |
 | `assets/ruycast.png` | [Ruycast `assets/hero.png`](https://github.com/viggomeesters/ruycast/blob/ceb43e7d578c66689d52c75a6dde523995e1f512/assets/hero.png) |
-| `assets/alteryx-viewer.svg` | [Alteryx Viewer `assets/screenshot.svg`](https://github.com/viggomeesters/obsidian-alteryx-viewer/blob/19d4050ca2392bc8f8a5609df8545e40737c1d85/assets/screenshot.svg) |
-| `assets/sql-viewer.svg` | [SQL Viewer `assets/screenshot.svg`](https://github.com/viggomeesters/obsidian-sql-viewer/blob/cac87886da897e17d765f035acd6ba0384e5269c/assets/screenshot.svg) |
 
-Descriptions follow the public project READMEs. Ruycast is a native beta, not a notarized app release. Project links remain the source for installation and current status.
+The description follows the public project README. Ruycast is a native beta, not a notarized app release. The project link remains the source for installation and current status.
 
 ## Metrics snapshot
 

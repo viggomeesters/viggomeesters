@@ -1,6 +1,6 @@
 # Asset notices
 
-The Ruycast, Alteryx Viewer and SQL Viewer preview assets are copyright (c) 2026 Viggo Meesters and distributed under the [MIT license](../LICENSE). Source revisions are listed in [maintenance](maintenance.md).
+The Ruycast preview asset is copyright (c) 2026 Viggo Meesters and distributed under the [MIT license](../LICENSE). Its source revision is listed in [maintenance](maintenance.md).
 
 Metrics uses the MIT-licensed lowlighter/Metrics renderer, copyright (c) 2020-present lowlighter. Its local privacy adaptation is recorded in `metrics-public-only.patch`.
 
