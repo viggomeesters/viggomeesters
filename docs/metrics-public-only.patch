@@ -1,0 +1,122 @@
+diff --git a/source/plugins/base/index.mjs b/source/plugins/base/index.mjs
+index fcd6c6a..c5d7086 100644
+--- a/source/plugins/base/index.mjs
++++ b/source/plugins/base/index.mjs
+@@ -37,6 +37,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+         console.debug(`metrics/compute/${login}/base > successfully loaded bulk query`)
+       }
+       catch {
++        throw new Error("Public snapshot query failed; broad fallback queries disabled")
+         console.debug(`metrics/compute/${login}/base > failed to load bulk query, falling back to unit queries`)
+         //Query basic fields
+         const fields = {
+@@ -88,7 +89,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+         }
+       }
+       //Query contributions collection over account lifetime instead of last year
+-      if (account === "user") {
++      if (false) { // Local public-repository snapshot: contribution history excluded.
+         if ((indepth) && (imports.metadata.plugins.base.extras("indepth", {...conf.settings, error: false}))) {
+           const fields = ["totalRepositoriesWithContributedCommits", "totalCommitContributions", "restrictedContributionsCount", "totalIssueContributions", "totalPullRequestContributions", "totalPullRequestReviewContributions"]
+           const start = new Date(data.user.createdAt)
+@@ -142,7 +143,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+         }
+       }
+       //Query repositories from GitHub API
+-      for (const type of ({user: ["repositories", "repositoriesContributedTo"], organization: ["repositories"]}[account] ?? [])) {
++      for (const type of ["repositories"]) {
+         //Iterate through repositories
+         let cursor = null
+         let pushed = 0
+@@ -182,6 +183,7 @@ export default async function({login, graphql, rest, data, q, queries, imports,
+       }
+       //Fetch missing packages count from ghcr.io using REST API (as GraphQL API does not support it yet)
+       try {
++        throw new Error("Public-repository snapshot: package queries disabled")
+         console.debug(`metrics/compute/${login}/base > patching packages count if possible`)
+         const {data: packages} = await rest.packages[{user: "listPackagesForUser", organization: "listPackagesForOrganization"}[account]]({package_type: "container", org: login, username: login})
+         data.user.packages.totalCount += packages.length
+diff --git a/source/plugins/base/queries/repositories.graphql b/source/plugins/base/queries/repositories.graphql
+index d0af25a..80a963d 100644
+--- a/source/plugins/base/queries/repositories.graphql
++++ b/source/plugins/base/queries/repositories.graphql
+@@ -1,6 +1,6 @@
+ query BaseRepositories {
+   $account(login: "$login") {
+-    $type($after first: $repositories $forks $affiliations $constraints, orderBy: {field: UPDATED_AT, direction: DESC}) {
++    $type($after first: $repositories $forks $affiliations $constraints, privacy: PUBLIC, orderBy: {field: UPDATED_AT, direction: DESC}) {
+       edges {
+         cursor
+       }
+@@ -58,4 +58,4 @@ query BaseRepositories {
+       }
+     }
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/source/plugins/base/queries/user.x.graphql b/source/plugins/base/queries/user.x.graphql
+index c4aa8a7..3cd1fe8 100644
+--- a/source/plugins/base/queries/user.x.graphql
++++ b/source/plugins/base/queries/user.x.graphql
+@@ -1,55 +1,13 @@
+ query BaseUserX {
+   user(login: "$login") {
+-    packages {
+-      totalCount
+-    }
+-    starredRepositories {
+-      totalCount
+-    }
+-    watching {
+-      totalCount
+-    }
+-    sponsorshipsAsSponsor {
+-      totalCount
+-    }
+-    sponsorshipsAsMaintainer {
+-      totalCount
+-    }
+-    followers {
+-      totalCount
+-    }
+-    following {
+-      totalCount
+-    }
+-    issueComments {
+-      totalCount
+-    }
+-    organizations {
+-      totalCount
+-    }
+-    repositoriesContributedTo(includeUserRepositories: true) {
+-      totalCount
+-    }
+-    repositories(last: 0 $affiliations) {
+-      totalCount
+-      totalDiskUsage
+-    }
+-    contributionsCollection {
+-      totalRepositoriesWithContributedCommits
+-      totalCommitContributions
+-      restrictedContributionsCount
+-      totalIssueContributions
+-      totalPullRequestContributions
+-      totalPullRequestReviewContributions
+-    }
+     calendar:contributionsCollection(from: "$calendar.from", to: "$calendar.to") {
+       contributionCalendar {
+-        weeks {
+-          contributionDays {
+-            color
+-          }
+-        }
++        weeks { contributionDays { color } }
+       }
+     }
++    repositories(last: 0 $affiliations, privacy: PUBLIC) {
++      totalCount
++      totalDiskUsage
++    }
+   }
+ }
